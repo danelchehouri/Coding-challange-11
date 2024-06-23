@@ -1,73 +1,70 @@
-<!U20452568>
+/ U20452568
+// Set up function.
+function main() {
+    //Set SVG container.
+    var data = [100, 420, 230, 850, 560, 925]
+    const margin = 1
+    const barHeight = 20
+    var height = data.length * barHeight + 20
+    var width = 500
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>D3.js Dynamic Bar Chart</title>
-    <style>
-        .bar {
-            fill: steelblue;
-        }
-        .bar:hover {
-            fill: orange;
-        }
-        text {
-            fill: white;
-            font: 12px sans-serif;
-            text-anchor: end;
-        }
-    </style>
-</head>
-<body>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
-    <script>
-        const data = [100, 420, 230, 850, 560, 925];
+    // Create SVG element.
+    var svg = d3.select('body').append('svg')
+        .attr("width", width)
+        .attr("height", height)
 
-        const barHeight = 20;
-        const barMargin = 1;
-        const width = 500;
-        const height = (barHeight + barMargin) * data.length;
+    // X-scale
+    var xScale = d3.scaleLinear()
+        .domain([d3.min(data), d3.max(data)])
+        .range([50, width])
+    
+    // Make the bars.
+    var bar = svg.selectAll('g')
+        .data(data)
+        .enter().append('g')
+        .attr('transform', function (d, i) {
+            return 'translate(0,'+ i * barHeight +')'
+        });
+       
+    // Add bars.
+    bar.append("rect").attr('width', function(d){
+        return xScale(d);
+    })
+        .attr('height', barHeight - 1)
+    
+    // Add x-axis 
+    var x_axis = d3.axisBottom()
+        .scale(xScale);
 
-        const svg = d3.select("body")
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height);
+    svg.append('g')
+        .attr("transform", `translate(0, ${height -20})`)
+        .call(x_axis)
 
-        const xScale = d3.scaleLinear()
-            .domain([0, d3.max(data)])
-            .range([50, width]);
+    // Add labels.
+    bar.append('text').attr('x', function(d){
+        return xScale(d) - 25;})
+        .attr('y', barHeight / 2)
+        .attr('dy', '.35em')
+        .text(function(d) {
+            return d; 
+        });
 
-        const bars = svg.selectAll("g")
-            .data(data)
-            .enter()
-            .append("g")
-            .attr("transform", (d, i) => `translate(0, ${i * (barHeight + barMargin)})`);
+    // Animate bars.
+    d3.selectAll('rect')
+        .transition()
+        .ease(d3.easeLinear)
+        .duration(5000)
+        .delay(function(d,i){return i*50})
 
-        bars.append("rect")
-            .attr("class", "bar")
-            .attr("width", d => xScale(d))
-            .attr("height", barHeight);
+    // Add hover effect.
+    d3.selectAll("rect")
+        .on("mouseover", function(){
+            d3.select(this)
+                .style("fill","aqua")
+        })
+        .on("mouseout", function(){
+            d3.select(this)
+                .style("fill","lightskyblue")
+        })
 
-        bars.append("text")
-            .attr("x", d => xScale(d) - 5)
-            .attr("y", barHeight / 2)
-            .attr("dy", ".35em")
-            .text(d => d);
-
-        bars.selectAll("rect")
-            .attr("width", 0)
-            .transition()
-            .duration(1000)
-            .attr("width", d => xScale(d));
-
-        bars.selectAll("rect")
-            .on("mouseover", function() {
-                d3.select(this).attr("fill", "orange");
-            })
-            .on("mouseout", function() {
-                d3.select(this).attr("fill", "steelblue");
-            });
-    </script>
-</body>
-</html>
+}
